@@ -1,0 +1,14 @@
+{
+  "name": "he-cafe-ecommerce",
+  "version": "1.0.0",
+  "description": "HE Cafe MERN E-Commerce Web Application",
+  "scripts": {
+    "backend": "cd backend && npm start",
+    "frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm.cmd run backend\" \"npm.cmd run frontend\"",
+    "install-all": "npm.cmd install && cd backend && npm.cmd install && cd ../frontend && npm.cmd install"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

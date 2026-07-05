@@ -1,0 +1,155 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const dotenv = require('dotenv');
+
+// Load Env variables
+dotenv.config();
+
+const app = express();
+
+// Middlewares
+app.use(cors());
+app.use(express.json());
+
+// Import Models for Seeding
+const User = require('./models/User');
+const Product = require('./models/Product');
+const Flyer = require('./models/Flyer');
+const Order = require('./models/Order');
+const Message = require('./models/Message');
+
+// Connect to Database and Seed
+const connectDB = async () => {
+  try {
+    const connStr = process.env.MONGO_URI || 'mongodb://localhost:27017/he_cafe';
+    await mongoose.connect(connStr);
+    console.log('MongoDB Connected successfully.');
+
+    // Seed Admin User
+    const adminUser = await User.findOne({ role: 'admin' });
+    if (!adminUser) {
+      const admin = new User({
+        name: 'HE Cafe Admin',
+        email: 'admin@hecafe.com',
+        password: 'admin123', // Will be hashed by User schema pre hook
+        phone: '+94 70 408 4540',
+        address: 'Colombo, Sri Lanka',
+        role: 'admin'
+      });
+      await admin.save();
+      console.log('Default Admin seeded: admin@hecafe.com / admin123');
+    }
+
+    // Seed Products
+    const productCount = await Product.countDocuments();
+    if (productCount === 0) {
+      const defaultProducts = [
+        { name: "Red Velvet Celebration Cake", emoji: "🎂", price: 4500, description: "A rich, moist red velvet cake layered with smooth cream cheese frosting. Perfect for celebrations.", category: "Birthday Cakes", stock: "Made to Order", status: "Active" },
+        { name: "Chocolate Truffle Cake", emoji: "🍫", price: 3800, description: "Indulgent dark chocolate layers with silky ganache and chocolate truffle decoration.", category: "Birthday Cakes", stock: "Made to Order", status: "Active" },
+        { name: "Vanilla Birthday Cake", emoji: "🎉", price: 3200, description: "Classic vanilla sponge with fluffy vanilla buttercream. Light, airy and perfect for any occasion.", category: "Birthday Cakes", stock: "Made to Order", status: "Active" },
+        { name: "Assorted Cupcake Box (6)", emoji: "🧁", price: 1800, description: "A delightful box of 6 assorted cupcakes — red velvet, chocolate, vanilla, and strawberry.", category: "Cupcakes", stock: "In Stock", status: "Active" },
+        { name: "Strawberry Shortcake", emoji: "🍓", price: 3600, description: "Fresh strawberries with whipped cream sponge. Light, fruity, and sweet.", category: "Wedding Cakes", stock: "Made to Order", status: "Active" },
+        { name: "Premium Baking Flour 1kg", emoji: "🌾", price: 450, description: "Premium quality all-purpose unbleached flour, ideal for cakes, breads, and biscuits.", category: "Ingredients", stock: "In Stock", status: "Active" },
+        { name: "Professional Piping Bag Set", emoji: "🎨", price: 1200, description: "Professional-grade piping bag set including 12 stainless steel nozzles and reusable bag.", category: "Baking Tools", stock: "In Stock", status: "Active" },
+        { name: "Caramel Walnut Cake", emoji: "🍮", price: 4200, description: "Rich caramel layers with crunchy walnuts. Sweet and textured pastry masterpiece.", category: "Pastries", stock: "Made to Order", status: "Active" }
+      ];
+      await Product.insertMany(defaultProducts);
+      console.log('Default products seeded.');
+    }
+
+    // Seed Flyers
+    const flyerCount = await Flyer.countDocuments();
+    if (flyerCount === 0) {
+      const defaultFlyers = [
+        { title: "BIRTHDAY SPECIAL", subtitle: "20% OFF this weekend", emoji: "🎂", gradient: "linear-gradient(135deg,#D31F1B,#8B0000)", status: "Active", isBroadcast: true },
+        { title: "WEDDING SEASON", subtitle: "Free consultation included", emoji: "💍", gradient: "linear-gradient(135deg,#1D1D1D,#444)", status: "Active", isBroadcast: false }
+      ];
+      await Flyer.insertMany(defaultFlyers);
+      console.log('Default flyers seeded.');
+    }
+
+    // Seed Orders
+    const orderCount = await Order.countDocuments();
+    if (orderCount === 0) {
+      const defaultOrders = [
+        {
+          orderId: "ORD-1042",
+          customerName: "Priya Sharma",
+          email: "priya@example.com",
+          phone: "+94 77 123 4567",
+          address: "No 45, Galle Road, Colombo 03",
+          type: "Regular",
+          items: [{ productId: "temp1", name: "Red Velvet Celebration Cake", emoji: "🎂", price: 5800, quantity: 1, size: "8 inch (serves 12-15)", flavour: "Red Velvet" }],
+          subtotal: 5800,
+          delivery: 0,
+          tax: 290,
+          total: 6090,
+          status: "Processing"
+        },
+        {
+          orderId: "ORD-1041",
+          customerName: "Kasun Perera",
+          email: "kasun@example.com",
+          phone: "+94 76 987 6543",
+          address: "No 12, Highlevel Road, Nugegoda",
+          type: "Regular",
+          items: [{ productId: "temp2", name: "Assorted Cupcake Box (6)", emoji: "🧁", price: 1800, quantity: 2, size: "Default", flavour: "Assorted" }],
+          subtotal: 3600,
+          delivery: 350,
+          tax: 180,
+          total: 4130,
+          status: "Pending"
+        },
+        {
+          orderId: "ORD-1040",
+          customerName: "Nimal Fernando",
+          email: "nimal@example.com",
+          phone: "+94 70 456 7890",
+          address: "No 88, Kandy Road, Kadawatha",
+          type: "Custom",
+          customDetails: { cakeType: "Wedding Cake", size: "Tiered / Custom", flavour: "Vanilla", frosting: "Fondant", message: "Congratulations!", deliveryDate: "2026-07-05", specialRequests: "Make it a 2-tier cake with silver ribbons." },
+          items: [{ productId: "custom", name: "Custom Wedding Cake", emoji: "💍", price: 18500, quantity: 1, size: "Tiered / Custom", flavour: "Vanilla" }],
+          subtotal: 18500,
+          delivery: 0,
+          tax: 925,
+          total: 19425,
+          status: "Delivered"
+        }
+      ];
+      await Order.insertMany(defaultOrders);
+      
+      // Seed welcome messages for each order
+      await Message.create([
+        { orderId: "ORD-1042", sender: "admin", text: "Welcome to HE Cafe! We have received your order." },
+        { orderId: "ORD-1041", sender: "admin", text: "Hello Kasun, your order is pending confirmation." },
+        { orderId: "ORD-1040", sender: "admin", text: "Your custom order details look fantastic! We will get it ready." },
+        { orderId: "ORD-1040", sender: "customer", text: "Thank you so much!" }
+      ]);
+      console.log('Default orders & messages seeded.');
+    }
+
+  } catch (err) {
+    console.error('Failed to connect to MongoDB', err);
+    process.exit(1);
+  }
+};
+
+connectDB();
+
+// API Routes Registration
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/products', require('./routes/products'));
+app.use('/api/orders', require('./routes/orders'));
+app.use('/api/flyers', require('./routes/flyers'));
+app.use('/api/chat', require('./routes/chat'));
+
+// Base route
+app.get('/', (req, res) => {
+  res.send('HE Cafe API is running...');
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
+});
