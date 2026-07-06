@@ -50,15 +50,17 @@ const categoryDetails = {
 
 const Products = ({ searchQuery, onCategorySelect }) => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [searchParams] = useSearchParams();
   const { quickAddToCart } = useContext(CartContext);
   const navigate = useNavigate();
 
   const categoryParam = searchParams.get('category') || 'all';
 
-  // Fetch products once on mount
+  // Fetch products and categories on mount
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   // Sync active category in parent (CategoryNav highlight) whenever URL param changes
@@ -74,6 +76,15 @@ const Products = ({ searchQuery, onCategorySelect }) => {
       setProducts(res.data);
     } catch (err) {
       console.error('Error fetching products', err);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/categories');
+      setCategories(res.data);
+    } catch (err) {
+      console.error('Error fetching categories', err);
     }
   };
 
@@ -94,6 +105,9 @@ const Products = ({ searchQuery, onCategorySelect }) => {
       p.category?.toLowerCase().includes(q)
     );
   }
+
+  const currentCategoryObj = categories.find(c => c.name.toLowerCase() === categoryParam.toLowerCase());
+  const catImage = currentCategoryObj ? currentCategoryObj.image : null;
 
   const detail = categoryDetails[categoryParam.toLowerCase()] || {
     title: categoryParam,
@@ -163,20 +177,37 @@ const Products = ({ searchQuery, onCategorySelect }) => {
           </p>
         </div>
 
-        <div style={{
-          fontSize: '64px',
-          background: 'rgba(255,255,255,0.18)',
-          width: '110px',
-          height: '110px',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backdropFilter: 'blur(8px)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-          zIndex: 1
-        }}>
-          {detail.emoji}
+        <div style={{ zIndex: 1, flexShrink: 0 }}>
+          {catImage ? (
+            <img 
+              src={catImage.startsWith('/uploads') ? `http://localhost:5000${catImage}` : catImage} 
+              alt={categoryParam} 
+              style={{ 
+                width: '240px', 
+                height: '150px', 
+                objectFit: 'cover', 
+                borderRadius: '16px', 
+                boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                border: '3px solid rgba(255, 255, 255, 0.25)',
+                display: 'block'
+              }} 
+            />
+          ) : (
+            <div style={{
+              fontSize: '56px',
+              background: 'rgba(255,255,255,0.18)',
+              width: '100px',
+              height: '100px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backdropFilter: 'blur(8px)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
+            }}>
+              {detail.emoji}
+            </div>
+          )}
         </div>
       </div>
 
