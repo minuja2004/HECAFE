@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CartContext } from '../context/CartContext';
+import heroImg from '../assets/hero.png';
 
 const Home = ({ onCategorySelect }) => {
   const [products, setProducts] = useState([]);
-  const [broadcastFlyer, setBroadcastFlyer] = useState(null);
+  const [flyers, setFlyers] = useState([]);
+  const [activeFlyer, setActiveFlyer] = useState(0);
   const [categories, setCategories] = useState([
     { name: 'Birthday Cakes', emoji: '🎂' },
     { name: 'Wedding Cakes', emoji: '💍' },
@@ -16,10 +18,20 @@ const Home = ({ onCategorySelect }) => {
   ]);
   const { quickAddToCart } = useContext(CartContext);
   const navigate = useNavigate();
+  const autoSlideRef = useRef(null);
 
   useEffect(() => {
     fetchHomeData();
   }, []);
+
+  // Auto-slide flyers
+  useEffect(() => {
+    if (flyers.length <= 1) return;
+    autoSlideRef.current = setInterval(() => {
+      setActiveFlyer(prev => (prev + 1) % flyers.length);
+    }, 3500);
+    return () => clearInterval(autoSlideRef.current);
+  }, [flyers]);
 
   const fetchHomeData = async () => {
     try {
@@ -28,8 +40,8 @@ const Home = ({ onCategorySelect }) => {
       setProducts(activeProducts.slice(0, 4));
 
       const flyerRes = await axios.get('http://localhost:5000/api/flyers');
-      const broadcast = flyerRes.data.find(f => f.isBroadcast);
-      setBroadcastFlyer(broadcast);
+      const activeFlyers = flyerRes.data.filter(f => f.status === 'Active');
+      setFlyers(activeFlyers);
 
       const catRes = await axios.get('http://localhost:5000/api/categories');
       if (catRes.data && Array.isArray(catRes.data)) {
@@ -47,15 +59,17 @@ const Home = ({ onCategorySelect }) => {
     navigate(`/products?category=${encodeURIComponent(catName)}`);
   };
 
+  const goToFlyer = (index) => {
+    clearInterval(autoSlideRef.current);
+    setActiveFlyer(index);
+    // Restart auto-slide after manual click
+    autoSlideRef.current = setInterval(() => {
+      setActiveFlyer(prev => (prev + 1) % flyers.length);
+    }, 3500);
+  };
+
   return (
     <div id="page-home" className="page active">
-      {/* Broadcast Banner */}
-      {broadcastFlyer && (
-        <div className="broadcast-banner" style={{ background: broadcastFlyer.gradient }}>
-          <span>{broadcastFlyer.emoji} {broadcastFlyer.title} — {broadcastFlyer.subtitle}</span>
-          <button onClick={() => navigate('/products')}>Grab Offer</button>
-        </div>
-      )}
 
       {/* HERO */}
       <div className="hero">
@@ -63,16 +77,59 @@ const Home = ({ onCategorySelect }) => {
           <div className="hero-tag">FRESHLY BAKED • SAME DAY DELIVERY</div>
           <h1>Custom Cakes &<br />Bakery Favourites,<br /><span>Made With Love</span></h1>
           <p>Order birthday cakes, cupcakes, pastries, and all your baking essentials from HE Cafe — Sri Lanka's home of handcrafted sweetness.</p>
+          <img src={heroImg} alt="HE Cafe Cakes & Bakery" style={{ width: '100%', maxWidth: '380px', borderRadius: '12px', marginTop: '16px', marginBottom: '24px', display: 'block', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
           <div className="hero-btns">
             <button className="btn-primary" onClick={() => navigate('/products')}>Shop Cakes</button>
             <button className="btn-outline" onClick={() => navigate('/custom-order')}>Custom Order</button>
           </div>
         </div>
-        <div className="hero-img">
-          <div className="hero-img-inner">
-            <div className="hero-cake-emoji">🎂</div>
-            <div className="hero-cake-label">Handcrafted with love</div>
-          </div>
+
+        {/* FLYER CAROUSEL */}
+        <div className="hero-flyer-carousel">
+          {flyers.length > 0 ? (
+            <>
+              <div className="hero-flyer-track">
+                {flyers.map((flyer, i) => (
+                  <div
+                    key={flyer._id}
+                    className={`hero-flyer-slide ${i === activeFlyer ? 'active' : ''}`}
+                    style={{ background: flyer.gradient || 'linear-gradient(135deg,#D31F1B,#8B0000)' }}
+                  >
+                    <div className="hero-flyer-emoji">{flyer.emoji}</div>
+                    <div className="hero-flyer-title">{flyer.title}</div>
+                    <div className="hero-flyer-subtitle">{flyer.subtitle}</div>
+                    <button
+                      className="hero-flyer-cta"
+                      onClick={() => navigate('/products')}
+                    >
+                      Grab Offer →
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Dot indicators */}
+              {flyers.length > 1 && (
+                <div className="hero-flyer-dots">
+                  {flyers.map((_, i) => (
+                    <button
+                      key={i}
+                      className={`flyer-dot ${i === activeFlyer ? 'active' : ''}`}
+                      onClick={() => goToFlyer(i)}
+                      aria-label={`Go to flyer ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            /* Fallback if no flyers */
+            <div className="hero-flyer-slide active" style={{ background: 'linear-gradient(135deg,#D31F1B,#8B0000)' }}>
+              <div className="hero-flyer-emoji">🎂</div>
+              <div className="hero-flyer-title">HE CAFE</div>
+              <div className="hero-flyer-subtitle">Handcrafted with love</div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -84,16 +141,16 @@ const Home = ({ onCategorySelect }) => {
         </div>
         <div className="cat-grid">
           {categories.map(cat => (
-            <div 
-              key={cat._id || cat.name} 
-              className="cat-card" 
+            <div
+              key={cat._id || cat.name}
+              className="cat-card"
               onClick={() => handleCategoryClick(cat.name)}
             >
               <div className="cat-icon">
                 {cat.image ? (
-                  <img 
-                    src={cat.image.startsWith('/uploads') ? `http://localhost:5000${cat.image}` : cat.image} 
-                    alt={cat.name} 
+                  <img
+                    src={cat.image.startsWith('/uploads') ? `http://localhost:5000${cat.image}` : cat.image}
+                    alt={cat.name}
                   />
                 ) : (
                   '🍰'
@@ -141,7 +198,7 @@ const Home = ({ onCategorySelect }) => {
       <div className="cta-banner">
         <div className="cta-copy">
           <h3>Planning a celebration?</h3>
-          <p>Design your own custom cake — choose flavour, size, layers & toppings. We make it perfect.</p>
+          <p>Design your own custom cake — choose flavour, size, layers &amp; toppings. We make it perfect.</p>
         </div>
         <button className="btn-white" onClick={() => navigate('/custom-order')}>Start Custom Order →</button>
       </div>

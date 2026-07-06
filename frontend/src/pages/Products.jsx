@@ -11,9 +11,17 @@ const Products = ({ searchQuery, onCategorySelect }) => {
 
   const categoryParam = searchParams.get('category') || 'all';
 
+  // Fetch products once on mount
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  // Sync active category in parent (CategoryNav highlight) whenever URL param changes
+  useEffect(() => {
+    if (onCategorySelect) {
+      onCategorySelect(categoryParam);
+    }
+  }, [categoryParam]);
 
   const fetchProducts = async () => {
     try {
@@ -28,15 +36,17 @@ const Products = ({ searchQuery, onCategorySelect }) => {
   let filtered = products.filter(p => p.status === 'Active');
 
   if (categoryParam !== 'all') {
-    filtered = filtered.filter(p => p.category === categoryParam);
+    filtered = filtered.filter(p =>
+      p.category?.toLowerCase() === categoryParam.toLowerCase()
+    );
   }
 
-  if (searchQuery.trim() !== '') {
+  if (searchQuery && searchQuery.trim() !== '') {
     const q = searchQuery.toLowerCase();
-    filtered = filtered.filter(p => 
-      p.name.toLowerCase().includes(q) || 
-      p.description.toLowerCase().includes(q) || 
-      p.category.toLowerCase().includes(q)
+    filtered = filtered.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.description?.toLowerCase().includes(q) ||
+      p.category?.toLowerCase().includes(q)
     );
   }
 
@@ -52,12 +62,12 @@ const Products = ({ searchQuery, onCategorySelect }) => {
         </div>
 
         {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: 'var(--gray)', gridColumn: 'span 4' }}>
+          <div style={{ textAlign: 'center', padding: '60px', color: 'var(--gray)' }}>
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>🧁</div>
             <h3>No products found match your search criteria.</h3>
-            <button 
-              className="btn-primary" 
-              style={{ marginTop: '14px', padding: '10px 20px', fontSize: '13px' }} 
+            <button
+              className="btn-primary"
+              style={{ marginTop: '14px', padding: '10px 20px', fontSize: '13px' }}
               onClick={() => {
                 if (onCategorySelect) onCategorySelect('all');
                 navigate('/products');
@@ -72,7 +82,11 @@ const Products = ({ searchQuery, onCategorySelect }) => {
               <div key={p._id} className="prod-card" onClick={() => navigate(`/product/${p._id}`)}>
                 <div className="prod-img">
                   {p.image ? (
-                    <img src={p.image.startsWith('/uploads') ? `http://localhost:5000${p.image}` : p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img
+                      src={p.image.startsWith('/uploads') ? `http://localhost:5000${p.image}` : p.image}
+                      alt={p.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
                   ) : (
                     <span style={{ fontSize: '48px' }}>🍰</span>
                   )}
