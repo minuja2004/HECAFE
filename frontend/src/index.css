@@ -162,11 +162,11 @@ body {
 .hero {
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.88) 0%, rgba(45, 16, 16, 0.88) 100%), url('./assets/hero.png') no-repeat center center;
   background-size: cover;
-  padding: 36px 64px;
+  padding: 48px 64px;
   display: flex;
   align-items: center;
   gap: 48px;
-  min-height: 320px;
+  min-height: 420px;
 }
 .hero-copy {
   flex: 1;
@@ -225,12 +225,12 @@ body {
 }
 /* ===== HERO FLYER CAROUSEL ===== */
 .hero-flyer-carousel {
-  flex: 0 0 340px;
-  height: 240px;
-  border-radius: 18px;
+  flex: 0 0 480px;
+  height: 340px;
+  border-radius: 20px;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
 }
 .hero-flyer-track {
   width: 100%;
@@ -1490,8 +1490,8 @@ footer {
     gap: 28px;
   }
   .hero-flyer-carousel {
-    flex: 0 0 260px;
-    height: 200px;
+    flex: 0 0 380px;
+    height: 270px;
   }
   .hero-copy h1 {
     font-size: 38px;
@@ -1604,8 +1604,10 @@ footer {
     order: 2;
     flex: unset;
     width: 100%;
-    height: 180px;
-    border-radius: 14px;
+    max-width: 440px;
+    height: 310px;
+    border-radius: 16px;
+    margin: 0 auto;
   }
   .hero-copy h1 {
     font-size: 30px;
