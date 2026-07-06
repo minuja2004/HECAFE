@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
 
-const Navbar = ({ onOpenTracking, onSearch }) => {
+const Navbar = ({ onOpenTracking, onSearch, onOpenCart }) => {
   const { user, logout } = useContext(AuthContext);
   const { getCartCount } = useContext(CartContext);
   const [searchVal, setSearchVal] = useState('');
@@ -88,7 +88,7 @@ const Navbar = ({ onOpenTracking, onSearch }) => {
             <Link to="/admin" className="admin-btn">🛡️ Admin Panel</Link>
           )}
 
-          <button className="cart-btn" onClick={() => navigate('/cart')}>
+          <button className="cart-btn" onClick={onOpenCart}>
             🛒 Cart ({getCartCount()})
           </button>
         </div>
@@ -127,7 +127,7 @@ const Navbar = ({ onOpenTracking, onSearch }) => {
         </nav>
 
         <div className="mobile-menu-footer">
-          <button className="cart-btn" style={{ width: '100%', justifyContent: 'center', padding: '14px' }} onClick={() => { navigate('/cart'); closeMenu(); }}>
+          <button className="cart-btn" style={{ width: '100%', justifyContent: 'center', padding: '14px' }} onClick={() => { onOpenCart(); closeMenu(); }}>
             🛒 Cart ({getCartCount()})
           </button>
           {user ? (

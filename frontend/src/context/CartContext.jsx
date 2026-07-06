@@ -7,6 +7,7 @@ export const CartProvider = ({ children }) => {
     const localData = localStorage.getItem('he_cafe_cart');
     return localData ? JSON.parse(localData) : [];
   });
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('he_cafe_cart', JSON.stringify(cart));
@@ -28,6 +29,7 @@ export const CartProvider = ({ children }) => {
     };
 
     setCart(prevCart => [...prevCart, newCartItem]);
+    setCartOpen(true);
   };
 
   const quickAddToCart = (product) => {
@@ -63,6 +65,8 @@ export const CartProvider = ({ children }) => {
   return (
     <CartContext.Provider value={{
       cart,
+      cartOpen,
+      setCartOpen,
       addToCart,
       quickAddToCart,
       removeFromCart,
