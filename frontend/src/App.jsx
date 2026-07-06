@@ -28,12 +28,16 @@ function AppContent() {
           onOpenTracking={() => setTrackingOpen(true)} 
           onSearch={(query) => setSearchQuery(query)}
           onOpenCart={() => setCartOpen(true)}
+          searchQuery={searchQuery}
         />
 
         {/* Global Category Nav */}
         <CategoryNav 
           activeCategory={activeCategory}
-          onSelectCategory={(cat) => setActiveCategory(cat)}
+          onSelectCategory={(cat) => {
+            setActiveCategory(cat);
+            setSearchQuery('');
+          }}
         />
 
         {/* Main Application Routes */}

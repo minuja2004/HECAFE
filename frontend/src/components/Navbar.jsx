@@ -1,14 +1,18 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
 
-const Navbar = ({ onOpenTracking, onSearch, onOpenCart }) => {
+const Navbar = ({ onOpenTracking, onSearch, onOpenCart, searchQuery }) => {
   const { user, logout } = useContext(AuthContext);
   const { getCartCount } = useContext(CartContext);
   const [searchVal, setSearchVal] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setSearchVal(searchQuery || '');
+  }, [searchQuery]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -25,9 +29,19 @@ const Navbar = ({ onOpenTracking, onSearch, onOpenCart }) => {
     if (onSearch) {
       onSearch(val);
     }
+    if (window.location.pathname !== '/products') {
+      navigate('/products');
+    }
   };
 
   const closeMenu = () => setMenuOpen(false);
+
+  const handleHomeClick = () => {
+    if (onSearch) {
+      onSearch('');
+    }
+    closeMenu();
+  };
 
   return (
     <>
@@ -52,7 +66,7 @@ const Navbar = ({ onOpenTracking, onSearch, onOpenCart }) => {
 
       {/* MAIN NAVBAR */}
       <nav className="navbar">
-        <Link to="/" className="logo" onClick={closeMenu}>
+        <Link to="/" className="logo" onClick={handleHomeClick}>
           <div className="logo-text">HE <span>Cafe</span></div>
         </Link>
 
@@ -80,7 +94,7 @@ const Navbar = ({ onOpenTracking, onSearch, onOpenCart }) => {
 
         {/* Desktop Nav Icons */}
         <div className="nav-icons">
-          <Link to="/">Home</Link>
+          <Link to="/" onClick={handleHomeClick}>Home</Link>
           <Link to="/custom-order">Custom Order</Link>
           <a onClick={onOpenTracking} style={{ cursor: 'pointer' }}>Track Order</a>
 
@@ -117,7 +131,7 @@ const Navbar = ({ onOpenTracking, onSearch, onOpenCart }) => {
         </form>
 
         <nav className="mobile-nav-links">
-          <Link to="/" onClick={closeMenu}>🏠 Home</Link>
+          <Link to="/" onClick={handleHomeClick}>🏠 Home</Link>
           <Link to="/products" onClick={closeMenu}>🛍️ All Products</Link>
           <Link to="/custom-order" onClick={closeMenu}>🎂 Custom Order</Link>
           <a onClick={() => { onOpenTracking(); closeMenu(); }} style={{ cursor: 'pointer' }}>📦 Track Order</a>

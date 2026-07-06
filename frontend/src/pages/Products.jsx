@@ -107,14 +107,22 @@ const Products = ({ searchQuery, onCategorySelect }) => {
   }
 
   const currentCategoryObj = categories.find(c => c.name.toLowerCase() === categoryParam.toLowerCase());
-  const catImage = currentCategoryObj ? currentCategoryObj.image : null;
+  const isSearching = searchQuery && searchQuery.trim() !== '';
+  const catImage = isSearching ? null : (currentCategoryObj ? currentCategoryObj.image : null);
 
-  const detail = categoryDetails[categoryParam.toLowerCase()] || {
-    title: categoryParam,
-    subtitle: `Browse through our selection of ${categoryParam.toLowerCase()} products at HE Cafe.`,
-    emoji: "🍰",
-    gradient: "linear-gradient(135deg, #1D1D1D 0%, #2D1010 100%)"
-  };
+  const detail = isSearching
+    ? {
+        title: "Search Results",
+        subtitle: `Showing products matching "${searchQuery}"`,
+        emoji: "🔍",
+        gradient: "linear-gradient(135deg, #1f2029 0%, #3b3d52 100%)"
+      }
+    : (categoryDetails[categoryParam.toLowerCase()] || {
+        title: categoryParam,
+        subtitle: `Browse through our selection of ${categoryParam.toLowerCase()} products at HE Cafe.`,
+        emoji: "🍰",
+        gradient: "linear-gradient(135deg, #1D1D1D 0%, #2D1010 100%)"
+      });
 
   return (
     <div id="page-products" className="page">
