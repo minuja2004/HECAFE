@@ -37,6 +37,8 @@ const AdminDashboard = () => {
   const [flyerForm, setFlyerForm] = useState({
     id: '', title: '', subtitle: '', emoji: '', gradient: 'linear-gradient(135deg,#D31F1B,#8B0000)', status: 'Active'
   });
+  const [flyerIconType, setFlyerIconType] = useState('emoji'); // 'emoji', 'url', 'upload'
+  const [flyerUploadLoading, setFlyerUploadLoading] = useState(false);
 
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [categoryForm, setCategoryForm] = useState({
@@ -231,12 +233,41 @@ const AdminDashboard = () => {
         gradient: flyer.gradient,
         status: flyer.status
       });
+      if (flyer.emoji.startsWith('http://') || flyer.emoji.startsWith('https://')) {
+        setFlyerIconType('url');
+      } else if (flyer.emoji.startsWith('/uploads/')) {
+        setFlyerIconType('upload');
+      } else {
+        setFlyerIconType('emoji');
+      }
     } else {
       setFlyerForm({
         id: '', title: '', subtitle: '', emoji: '', gradient: 'linear-gradient(135deg,#D31F1B,#8B0000)', status: 'Active'
       });
+      setFlyerIconType('emoji');
     }
     setFlyerModalOpen(true);
+  };
+
+  const handleFlyerImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    setFlyerUploadLoading(true);
+    try {
+      const res = await axios.post('http://localhost:5000/api/flyers/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      setFlyerForm(prev => ({ ...prev, emoji: res.data.imageUrl }));
+    } catch (err) {
+      console.error(err);
+      alert('Error uploading image');
+    } finally {
+      setFlyerUploadLoading(false);
+    }
   };
 
   const handleSaveFlyer = async (e) => {
@@ -711,8 +742,14 @@ const AdminDashboard = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
               {flyers.map(f => (
                 <div key={f._id} style={{ background: '#fff', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,.08)', border: f.isBroadcast ? '2px solid var(--red)' : '2px solid transparent' }}>
-                  <div style={{ height: '160px', background: f.gradient, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff', gap: '8px' }}>
-                    <div style={{ fontSize: '36px' }}>{f.emoji}</div>
+                  <div style={{ height: '160px', background: f.gradient, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff', gap: '8px', padding: '10px' }}>
+                    <div style={{ fontSize: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', borderRadius: '50%', overflow: 'hidden' }}>
+                      {f.emoji.startsWith('/') || f.emoji.startsWith('http') ? (
+                        <img src={f.emoji.startsWith('/') ? `http://localhost:5000${f.emoji}` : f.emoji} alt={f.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        f.emoji
+                      )}
+                    </div>
                     <div style={{ fontWeight: '900', fontSize: '16px' }}>{f.title}</div>
                     <div style={{ fontSize: '11px', opacity: 0.8 }}>{f.subtitle}</div>
                   </div>
@@ -887,17 +924,83 @@ const AdminDashboard = () => {
                   required 
                 />
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Emoji Icon *</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. 🎂" 
-                    value={flyerForm.emoji} 
-                    onChange={(e) => setFlyerForm({ ...flyerForm, emoji: e.target.value })} 
-                    required 
-                  />
+              <div className="form-group">
+                <label>Icon / Image Type</label>
+                <div style={{ display: 'flex', gap: '15px', marginBottom: '10px', marginTop: '5px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+                    <input 
+                      type="radio" 
+                      name="flyerIconType" 
+                      value="emoji" 
+                      checked={flyerIconType === 'emoji'} 
+                      onChange={() => { setFlyerIconType('emoji'); setFlyerForm({ ...flyerForm, emoji: '' }); }} 
+                    /> Emoji
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+                    <input 
+                      type="radio" 
+                      name="flyerIconType" 
+                      value="url" 
+                      checked={flyerIconType === 'url'} 
+                      onChange={() => { setFlyerIconType('url'); setFlyerForm({ ...flyerForm, emoji: '' }); }} 
+                    /> Image URL
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
+                    <input 
+                      type="radio" 
+                      name="flyerIconType" 
+                      value="upload" 
+                      checked={flyerIconType === 'upload'} 
+                      onChange={() => { setFlyerIconType('upload'); setFlyerForm({ ...flyerForm, emoji: '' }); }} 
+                    /> Upload File
+                  </label>
                 </div>
+              </div>
+
+              <div className="form-row">
+                {flyerIconType === 'emoji' && (
+                  <div className="form-group">
+                    <label>Emoji Icon *</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. 🎂" 
+                      value={flyerForm.emoji} 
+                      onChange={(e) => setFlyerForm({ ...flyerForm, emoji: e.target.value })} 
+                      required 
+                    />
+                  </div>
+                )}
+                {flyerIconType === 'url' && (
+                  <div className="form-group">
+                    <label>Image URL *</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. https://example.com/image.png" 
+                      value={flyerForm.emoji} 
+                      onChange={(e) => setFlyerForm({ ...flyerForm, emoji: e.target.value })} 
+                      required 
+                    />
+                  </div>
+                )}
+                {flyerIconType === 'upload' && (
+                  <div className="form-group">
+                    <label>Upload Image *</label>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleFlyerImageUpload}
+                        required={!flyerForm.emoji}
+                      />
+                      {flyerUploadLoading && <span style={{ fontSize: '12px', color: 'var(--gray)' }}>Uploading...</span>}
+                    </div>
+                    {flyerForm.emoji && (
+                      <div style={{ marginTop: '8px', fontSize: '11px', color: 'green', wordBreak: 'break-all' }}>
+                        Uploaded: {flyerForm.emoji}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="form-group">
                   <label>Theme Gradient</label>
                   <select 

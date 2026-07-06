@@ -2,6 +2,50 @@ const express = require('express');
 const router = express.Router();
 const Flyer = require('../models/Flyer');
 const { auth, admin } = require('../middleware/auth');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Multer Config
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `flyer-${Date.now()}${path.extname(file.originalname)}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const fileTypes = /jpeg|jpg|png|webp|gif/;
+    const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = fileTypes.test(file.mimetype);
+    if (extname && mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error('Images only!'));
+  }
+});
+
+// @route   POST api/flyers/upload
+// @desc    Upload an image for flyer
+// @access  Private/Admin
+router.post('/upload', auth, admin, upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: 'No file uploaded' });
+  }
+  const fileUrl = `/uploads/${req.file.filename}`;
+  res.json({ imageUrl: fileUrl });
+});
 
 // @route   GET api/flyers
 // @desc    Get all active flyers for public store
