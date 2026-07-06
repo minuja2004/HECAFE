@@ -1825,14 +1825,14 @@ footer {
 .cart-drawer {
   position: fixed;
   top: 0;
-  left: 0;
+  right: 0;
   bottom: 0;
   width: 440px;
   max-width: 100%;
   background: #fff;
   z-index: 2001;
-  box-shadow: 5px 0 30px rgba(0, 0, 0, 0.2);
-  transform: translateX(-100%);
+  box-shadow: -5px 0 30px rgba(0, 0, 0, 0.2);
+  transform: translateX(100%);
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
