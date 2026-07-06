@@ -88,33 +88,43 @@ const Home = ({ onCategorySelect }) => {
           {flyers.length > 0 ? (
             <>
               <div className="hero-flyer-track">
-                {flyers.map((flyer, i) => (
-                  <div
-                    key={flyer._id}
-                    className={`hero-flyer-slide ${i === activeFlyer ? 'active' : ''}`}
-                    style={{ background: flyer.gradient || 'linear-gradient(135deg,#D31F1B,#8B0000)' }}
-                  >
-                    <div className="hero-flyer-emoji">
-                      {flyer.emoji && (flyer.emoji.startsWith('/') || flyer.emoji.startsWith('http')) ? (
-                        <img 
-                          src={flyer.emoji.startsWith('/') ? `http://localhost:5000${flyer.emoji}` : flyer.emoji} 
-                          alt={flyer.title} 
-                          style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.6)', display: 'block', margin: '0 auto' }} 
-                        />
-                      ) : (
-                        flyer.emoji
-                      )}
-                    </div>
-                    <div className="hero-flyer-title">{flyer.title}</div>
-                    <div className="hero-flyer-subtitle">{flyer.subtitle}</div>
-                    <button
-                      className="hero-flyer-cta"
+                {flyers.map((flyer, i) => {
+                  const isImageFlyer = flyer.emoji && (flyer.emoji.startsWith('/') || flyer.emoji.startsWith('http'));
+                  const bgImage = isImageFlyer 
+                    ? `url(${flyer.emoji.startsWith('/') ? `http://localhost:5000${flyer.emoji}` : flyer.emoji})`
+                    : (flyer.gradient || 'linear-gradient(135deg,#D31F1B,#8B0000)');
+                  return (
+                    <div
+                      key={flyer._id}
+                      className={`hero-flyer-slide ${i === activeFlyer ? 'active' : ''}`}
+                      style={{ 
+                        background: bgImage,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                        cursor: 'pointer'
+                      }}
                       onClick={() => navigate('/products')}
                     >
-                      Grab Offer →
-                    </button>
-                  </div>
-                ))}
+                      {!isImageFlyer && (
+                        <>
+                          <div className="hero-flyer-emoji">{flyer.emoji}</div>
+                          <div className="hero-flyer-title">{flyer.title}</div>
+                          <div className="hero-flyer-subtitle">{flyer.subtitle}</div>
+                          <button
+                            className="hero-flyer-cta"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate('/products');
+                            }}
+                          >
+                            Grab Offer →
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Dot indicators */}

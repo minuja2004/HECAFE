@@ -742,16 +742,26 @@ const AdminDashboard = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
               {flyers.map(f => (
                 <div key={f._id} style={{ background: '#fff', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,.08)', border: f.isBroadcast ? '2px solid var(--red)' : '2px solid transparent' }}>
-                  <div style={{ height: '160px', background: f.gradient, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff', gap: '8px', padding: '10px' }}>
-                    <div style={{ fontSize: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', borderRadius: '50%', overflow: 'hidden' }}>
-                      {f.emoji.startsWith('/') || f.emoji.startsWith('http') ? (
-                        <img src={f.emoji.startsWith('/') ? `http://localhost:5000${f.emoji}` : f.emoji} alt={f.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        f.emoji
-                      )}
-                    </div>
-                    <div style={{ fontWeight: '900', fontSize: '16px' }}>{f.title}</div>
-                    <div style={{ fontSize: '11px', opacity: 0.8 }}>{f.subtitle}</div>
+                  <div style={{ 
+                    height: '160px', 
+                    background: f.emoji.startsWith('/') || f.emoji.startsWith('http')
+                      ? `url(${f.emoji.startsWith('/') ? `http://localhost:5000${f.emoji}` : f.emoji}) no-repeat center center / cover`
+                      : f.gradient, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    color: '#fff', 
+                    gap: '8px', 
+                    padding: '10px' 
+                  }}>
+                    {!(f.emoji.startsWith('/') || f.emoji.startsWith('http')) && (
+                      <>
+                        <div style={{ fontSize: '36px' }}>{f.emoji}</div>
+                        <div style={{ fontWeight: '900', fontSize: '16px' }}>{f.title}</div>
+                        <div style={{ fontSize: '11px', opacity: 0.8 }}>{f.subtitle}</div>
+                      </>
+                    )}
                   </div>
                   <div style={{ padding: '14px 16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
