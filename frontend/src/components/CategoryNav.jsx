@@ -32,6 +32,9 @@ const CategoryNav = ({ activeCategory, onSelectCategory }) => {
       }
     };
     fetchCategories();
+
+    const interval = setInterval(fetchCategories, 4000);
+    return () => clearInterval(interval);
   }, []);
 
   // Close dropdown on click outside
