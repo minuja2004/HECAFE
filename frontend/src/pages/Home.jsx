@@ -37,7 +37,7 @@ const Home = ({ onCategorySelect }) => {
     try {
       const prodRes = await axios.get('http://localhost:5000/api/products');
       const activeProducts = prodRes.data.filter(p => p.status === 'Active');
-      setProducts(activeProducts.slice(0, 4));
+      setProducts(activeProducts);
 
       const flyerRes = await axios.get('http://localhost:5000/api/flyers');
       const activeFlyers = flyerRes.data.filter(f => f.status === 'Active');
@@ -171,37 +171,43 @@ const Home = ({ onCategorySelect }) => {
         </div>
       </div>
 
-      {/* BESTSELLERS */}
-      <div className="prod-section">
-        <div className="section-header">
-          <h2>Best Selling Cakes</h2>
-          <a onClick={() => navigate('/products')}>View All →</a>
-        </div>
-        <div className="prod-grid">
-          {products.map(p => (
-            <div key={p._id} className="prod-card" onClick={() => navigate(`/product/${p._id}`)}>
-              <div className="prod-img">
-                {p.image ? (
-                  <img src={p.image.startsWith('/uploads') ? `http://localhost:5000${p.image}` : p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <span style={{ fontSize: '48px' }}>🍰</span>
-                )}
-                <div className="prod-badge">{p.stock === 'Made to Order' ? 'FRESH' : 'BESTSELLER'}</div>
-              </div>
-              <div className="prod-body">
-                <div className="prod-name">{p.name}</div>
-                <div className="prod-footer">
-                  <span className="prod-price">Rs. {p.price.toLocaleString()}</span>
-                  <button className="add-btn" onClick={(e) => {
-                    e.stopPropagation();
-                    quickAddToCart(p);
-                  }}>Add +</button>
-                </div>
-              </div>
+      {/* CATEGORY PRODUCTS SECTIONS */}
+      {categories.map(cat => {
+        const catProducts = products.filter(p => p.category && p.category.toLowerCase() === cat.name.toLowerCase()).slice(0, 4);
+        if (catProducts.length === 0) return null;
+        return (
+          <div key={cat._id || cat.name} className="prod-section" style={{ marginBottom: '48px' }}>
+            <div className="section-header">
+              <h2>{cat.name}</h2>
+              <a onClick={() => handleCategoryClick(cat.name)}>View All →</a>
             </div>
-          ))}
-        </div>
-      </div>
+            <div className="prod-grid">
+              {catProducts.map(p => (
+                <div key={p._id} className="prod-card" onClick={() => navigate(`/product/${p._id}`)}>
+                  <div className="prod-img">
+                    {p.image ? (
+                      <img src={p.image.startsWith('/uploads') ? `http://localhost:5000${p.image}` : p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '48px' }}>🍰</span>
+                    )}
+                    <div className="prod-badge">{p.stock === 'Made to Order' ? 'FRESH' : 'BESTSELLER'}</div>
+                  </div>
+                  <div className="prod-body">
+                    <div className="prod-name">{p.name}</div>
+                    <div className="prod-footer">
+                      <span className="prod-price">Rs. {p.price.toLocaleString()}</span>
+                      <button className="add-btn" onClick={(e) => {
+                        e.stopPropagation();
+                        quickAddToCart(p);
+                      }}>Add +</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
 
       {/* CTA BANNER */}
       <div className="cta-banner">
