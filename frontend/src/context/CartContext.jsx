@@ -20,7 +20,7 @@ export const CartProvider = ({ children }) => {
       id: cartId,
       productId: product._id || product.id,
       name: product.name,
-      emoji: product.emoji,
+      image: product.image,
       price,
       quantity,
       size,

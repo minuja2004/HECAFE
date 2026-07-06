@@ -18,6 +18,7 @@ const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [flyers, setFlyers] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Search & Filters state
@@ -27,13 +28,22 @@ const AdminDashboard = () => {
   // Modals state
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [productForm, setProductForm] = useState({
-    id: '', name: '', emoji: '', price: '', description: '', category: 'Birthday Cakes', stock: 'Made to Order', status: 'Active'
+    id: '', name: '', image: '', price: '', description: '', category: 'Birthday Cakes', stock: 'Made to Order', status: 'Active'
   });
+  const [productUploadLoading, setProductUploadLoading] = useState(false);
+  const [productImageSource, setProductImageSource] = useState('url'); // 'url' or 'upload'
 
   const [flyerModalOpen, setFlyerModalOpen] = useState(false);
   const [flyerForm, setFlyerForm] = useState({
     id: '', title: '', subtitle: '', emoji: '', gradient: 'linear-gradient(135deg,#D31F1B,#8B0000)', status: 'Active'
   });
+
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [categoryForm, setCategoryForm] = useState({
+    id: '', name: '', image: ''
+  });
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [imageSource, setImageSource] = useState('url'); // 'url' or 'upload'
 
   const [orderDetailModalOpen, setOrderDetailModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -66,20 +76,33 @@ const AdminDashboard = () => {
   const fetchAdminData = async () => {
     setLoading(true);
     try {
-      const [ordersRes, productsRes, flyersRes] = await Promise.all([
+      // Always load categories (public endpoint) independently
+      const categoriesRes = await axios.get('http://localhost:5000/api/categories');
+      setCategories(categoriesRes.data);
+
+      // Admin-only endpoints - use allSettled so one failure doesn't block the rest
+      const [ordersRes, productsRes, flyersRes] = await Promise.allSettled([
         axios.get('http://localhost:5000/api/orders'),
         axios.get('http://localhost:5000/api/products'),
-        axios.get('http://localhost:5000/api/flyers/admin')
+        axios.get('http://localhost:5000/api/flyers/admin'),
       ]);
-      setOrders(ordersRes.data);
-      setProducts(productsRes.data);
-      setFlyers(flyersRes.data);
+
+      if (ordersRes.status === 'fulfilled') setOrders(ordersRes.value.data);
+      if (productsRes.status === 'fulfilled') setProducts(productsRes.value.data);
+      if (flyersRes.status === 'fulfilled') setFlyers(flyersRes.value.data);
     } catch (err) {
       console.error('Error fetching admin data', err);
     } finally {
       setLoading(false);
     }
   };
+
+  // Always load categories on mount (for product form dropdown even if not yet admin)
+  useEffect(() => {
+    axios.get('http://localhost:5000/api/categories')
+      .then(res => setCategories(res.data))
+      .catch(() => {});
+  }, []);
 
   const fetchChatMessages = async () => {
     if (!selectedOrder) return;
@@ -125,19 +148,44 @@ const AdminDashboard = () => {
       setProductForm({
         id: product._id,
         name: product.name,
-        emoji: product.emoji,
+        image: product.image,
         price: product.price,
         description: product.description,
         category: product.category,
         stock: product.stock,
         status: product.status
       });
+      if (product.image && product.image.startsWith('/uploads')) {
+        setProductImageSource('upload');
+      } else {
+        setProductImageSource('url');
+      }
     } else {
       setProductForm({
-        id: '', name: '', emoji: '', price: '', description: '', category: 'Birthday Cakes', stock: 'Made to Order', status: 'Active'
+        id: '', name: '', image: '', price: '', description: '', category: 'Birthday Cakes', stock: 'Made to Order', status: 'Active'
       });
+      setProductImageSource('url');
     }
     setProductModalOpen(true);
+  };
+
+  const handleProductImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      setProductUploadLoading(true);
+      const res = await axios.post('http://localhost:5000/api/categories/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setProductForm(prev => ({ ...prev, image: res.data.imageUrl }));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to upload image.');
+    } finally {
+      setProductUploadLoading(false);
+    }
   };
 
   const handleSaveProduct = async (e) => {
@@ -153,8 +201,11 @@ const AdminDashboard = () => {
       setProductModalOpen(false);
       fetchAdminData();
     } catch (err) {
-      console.error(err);
-      alert('Error saving product.');
+      console.error('Save product error:', err.response?.data || err.message);
+      // 401 is handled by the global interceptor (auto-logout), skip alert
+      if (err.response?.status !== 401) {
+        alert(err.response?.data?.message || 'Error saving product. Check the console for details.');
+      }
     }
   };
 
@@ -225,6 +276,80 @@ const AdminDashboard = () => {
     }
   };
 
+  // Category CRUD Handlers
+  const handleOpenCategoryModal = (category = null) => {
+    if (category) {
+      setCategoryForm({
+        id: category._id,
+        name: category.name,
+        image: category.image
+      });
+      if (category.image && category.image.startsWith('/uploads')) {
+        setImageSource('upload');
+      } else {
+        setImageSource('url');
+      }
+    } else {
+      setCategoryForm({
+        id: '', name: '', image: ''
+      });
+      setImageSource('url');
+    }
+    setCategoryModalOpen(true);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      setUploadLoading(true);
+      const res = await axios.post('http://localhost:5000/api/categories/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      setCategoryForm(prev => ({ ...prev, image: res.data.imageUrl }));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
+  const handleSaveCategory = async (e) => {
+    e.preventDefault();
+    try {
+      if (categoryForm.id) {
+        // Edit
+        await axios.put(`http://localhost:5000/api/categories/${categoryForm.id}`, categoryForm);
+      } else {
+        // Create
+        await axios.post('http://localhost:5000/api/categories', categoryForm);
+      }
+      setCategoryModalOpen(false);
+      fetchAdminData();
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Error saving category.');
+    }
+  };
+
+  const handleDeleteCategory = async (catId) => {
+    if (!window.confirm('Are you sure you want to delete this category? This will delete the category but not the products under it.')) return;
+    try {
+      await axios.delete(`http://localhost:5000/api/categories/${catId}`);
+      fetchAdminData();
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting category.');
+    }
+  };
+
   // Derived calculations
   const totalRevenue = orders.filter(o => o.status !== 'Cancelled').reduce((sum, o) => sum + o.total, 0);
   const activeCustomersCount = [...new Set(orders.map(o => o.phone))].length;
@@ -280,6 +405,7 @@ const AdminDashboard = () => {
             <a className={activeTab === 'orders' ? 'active' : ''} onClick={() => setActiveTab('orders')}>📦 Orders</a>
             <a className={activeTab === 'customers' ? 'active' : ''} onClick={() => setActiveTab('customers')}>👥 Customers</a>
             <a className={activeTab === 'products' ? 'active' : ''} onClick={() => setActiveTab('products')}>🎂 Products</a>
+            <a className={activeTab === 'categories' ? 'active' : ''} onClick={() => setActiveTab('categories')}>🏷️ Categories</a>
             <a className={activeTab === 'flyers' ? 'active' : ''} onClick={() => setActiveTab('flyers')}>🖼 Flyers & Offers</a>
           </div>
           <div style={{ marginTop: '20px' }}>
@@ -474,7 +600,14 @@ const AdminDashboard = () => {
                 <tbody>
                   {products.map(p => (
                     <tr key={p._id}>
-                      <td>{p.emoji} <strong>{p.name}</strong></td>
+                      <td style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        {p.image ? (
+                          <img src={p.image.startsWith('/uploads') ? `http://localhost:5000${p.image}` : p.image} alt={p.name} style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '6px', flexShrink: 0 }} />
+                        ) : (
+                          <span style={{ fontSize: '22px' }}>🍰</span>
+                        )}
+                        <strong>{p.name}</strong>
+                      </td>
                       <td>{p.category}</td>
                       <td><strong style={{ color: 'var(--red)' }}>Rs. {p.price.toLocaleString()}</strong></td>
                       <td>{p.stock}</td>
@@ -490,6 +623,66 @@ const AdminDashboard = () => {
                           <button 
                             style={{ background: '#dc3545', color: '#fff', border: 'none', padding: '5px 12px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer' }}
                             onClick={() => handleDeleteProduct(p._id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Categories Tab */}
+        {activeTab === 'categories' && (
+          <div id="admin-categories" className="admin-main">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2 style={{ margin: 0 }}>Category Management</h2>
+              <button 
+                style={{ background: 'var(--red)', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '10px', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}
+                onClick={() => handleOpenCategoryModal()}
+              >
+                + Add Category
+              </button>
+            </div>
+            <div className="admin-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Category Name</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categories.map(c => (
+                    <tr key={c._id}>
+                      <td>
+                        {c.image ? (
+                          <img 
+                            src={c.image.startsWith('/uploads') ? `http://localhost:5000${c.image}` : c.image} 
+                            alt={c.name} 
+                            style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '8px' }} 
+                          />
+                        ) : (
+                          '🍰'
+                        )}
+                      </td>
+                      <td><strong>{c.name}</strong></td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button 
+                            style={{ background: 'var(--black)', color: '#fff', border: 'none', padding: '5px 12px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer' }}
+                            onClick={() => handleOpenCategoryModal(c)}
+                          >
+                            Edit
+                          </button>
+                          <button 
+                            style={{ background: '#dc3545', color: '#fff', border: 'none', padding: '5px 12px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer' }}
+                            onClick={() => handleDeleteCategory(c._id)}
                           >
                             Delete
                           </button>
@@ -581,12 +774,11 @@ const AdminDashboard = () => {
                     value={productForm.category} 
                     onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
                   >
-                    <option>Birthday Cakes</option>
-                    <option>Wedding Cakes</option>
-                    <option>Cupcakes</option>
-                    <option>Pastries</option>
-                    <option>Baking Tools</option>
-                    <option>Ingredients</option>
+                    {categories.map(cat => (
+                      <option key={cat._id || cat.name} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="form-group">
@@ -599,28 +791,57 @@ const AdminDashboard = () => {
                   />
                 </div>
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Stock Status *</label>
-                  <select 
-                    value={productForm.stock} 
-                    onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
-                  >
-                    <option>Made to Order</option>
-                    <option>In Stock</option>
-                    <option>Out of Stock</option>
-                  </select>
+
+              {/* Image Source Toggle */}
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label>Product Image *</label>
+                <div style={{ display: 'flex', gap: '16px', marginTop: '6px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: 'var(--black)' }}>
+                    <input type="radio" name="productImageSource" value="url" checked={productImageSource === 'url'} onChange={() => setProductImageSource('url')} />
+                    Image URL
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: 'var(--black)' }}>
+                    <input type="radio" name="productImageSource" value="upload" checked={productImageSource === 'upload'} onChange={() => setProductImageSource('upload')} />
+                    Local Upload
+                  </label>
                 </div>
+              </div>
+              {productImageSource === 'url' ? (
                 <div className="form-group">
-                  <label>Emoji Icon *</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. 🎂" 
-                    value={productForm.emoji} 
-                    onChange={(e) => setProductForm({ ...productForm, emoji: e.target.value })} 
-                    required 
+                  <label>Image URL *</label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    value={productForm.image}
+                    onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
+                    required={productImageSource === 'url'}
                   />
                 </div>
+              ) : (
+                <div className="form-group">
+                  <label>Upload Image File *</label>
+                  <input type="file" accept="image/*" onChange={handleProductImageUpload} required={productImageSource === 'upload' && !productForm.image} />
+                  {productUploadLoading && <span style={{ fontSize: '12px', color: 'var(--gray)', marginTop: '4px', display: 'block' }}>Uploading...</span>}
+                </div>
+              )}
+              {productForm.image && (
+                <div className="form-group" style={{ marginTop: '8px' }}>
+                  <label>Image Preview</label>
+                  <div style={{ marginTop: '6px' }}>
+                    <img src={productForm.image.startsWith('/uploads') ? `http://localhost:5000${productForm.image}` : productForm.image} alt="Preview" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1.5px solid var(--border)' }} />
+                  </div>
+                </div>
+              )}
+              <div className="form-group">
+                <label>Stock Status *</label>
+                <select
+                  value={productForm.stock}
+                  onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })}
+                >
+                  <option>Made to Order</option>
+                  <option>In Stock</option>
+                  <option>Out of Stock</option>
+                </select>
               </div>
               <div className="form-group">
                 <label>Description *</label>
@@ -760,6 +981,92 @@ const AdminDashboard = () => {
                 <button type="submit">Send</button>
               </form>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* CATEGORY ADD/EDIT MODAL */}
+      {categoryModalOpen && (
+        <div className="modal-backdrop show">
+          <div className="modal-content">
+            <button className="modal-close" onClick={() => setCategoryModalOpen(false)}>×</button>
+            <div className="modal-header">
+              <h3>{categoryForm.id ? 'Edit Category' : 'Add Category'}</h3>
+            </div>
+            <form onSubmit={handleSaveCategory}>
+              <div className="form-group">
+                <label>Category Name *</label>
+                <input 
+                  type="text" 
+                  value={categoryForm.name} 
+                  onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })} 
+                  required 
+                />
+              </div>
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label>Image Source *</label>
+                <div style={{ display: 'flex', gap: '16px', marginTop: '6px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: 'var(--black)' }}>
+                    <input 
+                      type="radio" 
+                      name="imageSource" 
+                      value="url" 
+                      checked={imageSource === 'url'} 
+                      onChange={() => setImageSource('url')} 
+                    />
+                    Image URL
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: 'var(--black)' }}>
+                    <input 
+                      type="radio" 
+                      name="imageSource" 
+                      value="upload" 
+                      checked={imageSource === 'upload'} 
+                      onChange={() => setImageSource('upload')} 
+                    />
+                    Local Upload
+                  </label>
+                </div>
+              </div>
+
+              {imageSource === 'url' ? (
+                <div className="form-group">
+                  <label>Image URL *</label>
+                  <input 
+                    type="url" 
+                    placeholder="https://example.com/image.jpg" 
+                    value={categoryForm.image} 
+                    onChange={(e) => setCategoryForm({ ...categoryForm, image: e.target.value })} 
+                    required={imageSource === 'url'}
+                  />
+                </div>
+              ) : (
+                <div className="form-group">
+                  <label>Upload Image File *</label>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageUpload} 
+                    required={imageSource === 'upload' && !categoryForm.image}
+                  />
+                  {uploadLoading && <span style={{ fontSize: '12px', color: 'var(--gray)', marginTop: '4px', display: 'block' }}>Uploading...</span>}
+                </div>
+              )}
+
+              {categoryForm.image && (
+                <div className="form-group" style={{ marginTop: '12px' }}>
+                  <label>Image Preview</label>
+                  <div style={{ marginTop: '6px' }}>
+                    <img 
+                      src={categoryForm.image.startsWith('/uploads') ? `http://localhost:5000${categoryForm.image}` : categoryForm.image} 
+                      alt="Category Preview" 
+                      style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1.5px solid var(--border)' }} 
+                    />
+                  </div>
+                </div>
+              )}
+              <button type="submit" className="submit-btn" style={{ marginTop: '10px' }}>Save Category</button>
+            </form>
           </div>
         </div>
       )}

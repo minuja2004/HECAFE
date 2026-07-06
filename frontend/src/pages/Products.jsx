@@ -71,7 +71,11 @@ const Products = ({ searchQuery, onCategorySelect }) => {
             {filtered.map(p => (
               <div key={p._id} className="prod-card" onClick={() => navigate(`/product/${p._id}`)}>
                 <div className="prod-img">
-                  {p.emoji}
+                  {p.image ? (
+                    <img src={p.image.startsWith('/uploads') ? `http://localhost:5000${p.image}` : p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontSize: '48px' }}>🍰</span>
+                  )}
                   {p.stock !== 'In Stock' && (
                     <div className="prod-badge" style={{ background: '#555' }}>{p.stock}</div>
                   )}

@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
+const path = require('path');
+
 // Load Env variables
 dotenv.config();
 
@@ -11,6 +13,7 @@ const app = express();
 // Middlewares
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Import Models for Seeding
 const User = require('./models/User');
@@ -18,11 +21,21 @@ const Product = require('./models/Product');
 const Flyer = require('./models/Flyer');
 const Order = require('./models/Order');
 const Message = require('./models/Message');
+const Category = require('./models/Category');
+
+const { MongoMemoryServer } = require('mongodb-memory-server');
 
 // Connect to Database and Seed
+let mongoServer;
 const connectDB = async () => {
   try {
-    const connStr = process.env.MONGO_URI || 'mongodb://localhost:27017/he_cafe';
+    let connStr = process.env.MONGO_URI;
+    if (!connStr) {
+      console.log('No MONGO_URI specified. Starting in-memory MongoDB server...');
+      mongoServer = await MongoMemoryServer.create();
+      connStr = mongoServer.getUri();
+      console.log(`In-memory MongoDB started at: ${connStr}`);
+    }
     await mongoose.connect(connStr);
     console.log('MongoDB Connected successfully.');
 
@@ -45,17 +58,32 @@ const connectDB = async () => {
     const productCount = await Product.countDocuments();
     if (productCount === 0) {
       const defaultProducts = [
-        { name: "Red Velvet Celebration Cake", emoji: "🎂", price: 4500, description: "A rich, moist red velvet cake layered with smooth cream cheese frosting. Perfect for celebrations.", category: "Birthday Cakes", stock: "Made to Order", status: "Active" },
-        { name: "Chocolate Truffle Cake", emoji: "🍫", price: 3800, description: "Indulgent dark chocolate layers with silky ganache and chocolate truffle decoration.", category: "Birthday Cakes", stock: "Made to Order", status: "Active" },
-        { name: "Vanilla Birthday Cake", emoji: "🎉", price: 3200, description: "Classic vanilla sponge with fluffy vanilla buttercream. Light, airy and perfect for any occasion.", category: "Birthday Cakes", stock: "Made to Order", status: "Active" },
-        { name: "Assorted Cupcake Box (6)", emoji: "🧁", price: 1800, description: "A delightful box of 6 assorted cupcakes — red velvet, chocolate, vanilla, and strawberry.", category: "Cupcakes", stock: "In Stock", status: "Active" },
-        { name: "Strawberry Shortcake", emoji: "🍓", price: 3600, description: "Fresh strawberries with whipped cream sponge. Light, fruity, and sweet.", category: "Wedding Cakes", stock: "Made to Order", status: "Active" },
-        { name: "Premium Baking Flour 1kg", emoji: "🌾", price: 450, description: "Premium quality all-purpose unbleached flour, ideal for cakes, breads, and biscuits.", category: "Ingredients", stock: "In Stock", status: "Active" },
-        { name: "Professional Piping Bag Set", emoji: "🎨", price: 1200, description: "Professional-grade piping bag set including 12 stainless steel nozzles and reusable bag.", category: "Baking Tools", stock: "In Stock", status: "Active" },
-        { name: "Caramel Walnut Cake", emoji: "🍮", price: 4200, description: "Rich caramel layers with crunchy walnuts. Sweet and textured pastry masterpiece.", category: "Pastries", stock: "Made to Order", status: "Active" }
+        { name: "Red Velvet Celebration Cake", image: "https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=400", price: 4500, description: "A rich, moist red velvet cake layered with smooth cream cheese frosting. Perfect for celebrations.", category: "Birthday Cakes", stock: "Made to Order", status: "Active" },
+        { name: "Chocolate Truffle Cake", image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400", price: 3800, description: "Indulgent dark chocolate layers with silky ganache and chocolate truffle decoration.", category: "Birthday Cakes", stock: "Made to Order", status: "Active" },
+        { name: "Vanilla Birthday Cake", image: "https://images.unsplash.com/photo-1535141192574-5d4897c13636?w=400", price: 3200, description: "Classic vanilla sponge with fluffy vanilla buttercream. Light, airy and perfect for any occasion.", category: "Birthday Cakes", stock: "Made to Order", status: "Active" },
+        { name: "Assorted Cupcake Box (6)", image: "https://images.unsplash.com/photo-1587314168485-3236d6710814?w=400", price: 1800, description: "A delightful box of 6 assorted cupcakes — red velvet, chocolate, vanilla, and strawberry.", category: "Cupcakes", stock: "In Stock", status: "Active" },
+        { name: "Strawberry Shortcake", image: "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400", price: 3600, description: "Fresh strawberries with whipped cream sponge. Light, fruity, and sweet.", category: "Wedding Cakes", stock: "Made to Order", status: "Active" },
+        { name: "Premium Baking Flour 1kg", image: "https://images.unsplash.com/photo-1574085733277-851d9d856a3a?w=400", price: 450, description: "Premium quality all-purpose unbleached flour, ideal for cakes, breads, and biscuits.", category: "Ingredients", stock: "In Stock", status: "Active" },
+        { name: "Professional Piping Bag Set", image: "https://images.unsplash.com/photo-1517433456452-f9633a875f6f?w=400", price: 1200, description: "Professional-grade piping bag set including 12 stainless steel nozzles and reusable bag.", category: "Baking Tools", stock: "In Stock", status: "Active" },
+        { name: "Caramel Walnut Cake", image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400", price: 4200, description: "Rich caramel layers with crunchy walnuts. Sweet and textured pastry masterpiece.", category: "Pastries", stock: "Made to Order", status: "Active" }
       ];
       await Product.insertMany(defaultProducts);
       console.log('Default products seeded.');
+    }
+
+    // Seed Categories
+    const categoryCount = await Category.countDocuments();
+    if (categoryCount === 0) {
+      const defaultCategories = [
+        { name: "Birthday Cakes", image: "https://images.unsplash.com/photo-1535141192574-5d4897c13636?w=400" },
+        { name: "Wedding Cakes", image: "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=400" },
+        { name: "Cupcakes", image: "https://images.unsplash.com/photo-1587314168485-3236d6710814?w=400" },
+        { name: "Pastries", image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400" },
+        { name: "Ingredients", image: "https://images.unsplash.com/photo-1574085733277-851d9d856a3a?w=400" },
+        { name: "Baking Tools", image: "https://images.unsplash.com/photo-1517433456452-f9633a875f6f?w=400" }
+      ];
+      await Category.insertMany(defaultCategories);
+      console.log('Default categories seeded.');
     }
 
     // Seed Flyers
@@ -143,6 +171,7 @@ app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/flyers', require('./routes/flyers'));
 app.use('/api/chat', require('./routes/chat'));
+app.use('/api/categories', require('./routes/categories'));
 
 // Base route
 app.get('/', (req, res) => {

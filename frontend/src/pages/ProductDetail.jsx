@@ -58,7 +58,13 @@ const ProductDetail = () => {
   return (
     <div id="page-detail" className="page">
       <div className="detail-wrap">
-        <div className="detail-img">{product.emoji}</div>
+        <div className="detail-img">
+          {product.image ? (
+            <img src={product.image.startsWith('/uploads') ? `http://localhost:5000${product.image}` : product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '16px' }} />
+          ) : (
+            <span style={{ fontSize: '80px' }}>🍰</span>
+          )}
+        </div>
         <div className="detail-body">
           <button className="back-btn" onClick={() => navigate('/products')}>← Back to Shop</button>
           <h1>{product.name}</h1>

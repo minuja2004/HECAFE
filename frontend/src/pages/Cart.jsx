@@ -62,7 +62,7 @@ const Cart = () => {
       items: cart.map(item => ({
         productId: item.productId,
         name: item.name,
-        emoji: item.emoji,
+        image: item.image,
         price: item.price,
         quantity: item.quantity,
         size: item.size,
@@ -129,7 +129,13 @@ const Cart = () => {
             <h2>Your Shopping Cart</h2>
             {cart.map((item) => (
               <div key={item.id} className="cart-item">
-                <div className="cart-item-img">{item.emoji}</div>
+                <div className="cart-item-img">
+                  {item.image ? (
+                    <img src={item.image.startsWith('/uploads') ? `http://localhost:5000${item.image}` : item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                  ) : (
+                    <span style={{ fontSize: '36px' }}>🍰</span>
+                  )}
+                </div>
                 <div className="cart-item-info">
                   <h4>{item.name}</h4>
                   <p>Option: {item.size} | Flavour: {item.flavour}</p>

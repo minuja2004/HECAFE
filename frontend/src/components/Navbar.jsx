@@ -67,7 +67,7 @@ const Navbar = ({ onOpenTracking, onSearch }) => {
           <a onClick={onOpenTracking}>Track Order</a>
           
           {user && user.role === 'admin' && (
-            <Link to="/admin" style={{ color: 'var(--red)', fontWeight: 'bold' }}>Admin Panel</Link>
+            <Link to="/admin" className="admin-btn">🛡️ Admin Panel</Link>
           )}
 
           <button className="cart-btn" onClick={() => navigate('/cart')}>

@@ -6,6 +6,14 @@ import { CartContext } from '../context/CartContext';
 const Home = ({ onCategorySelect }) => {
   const [products, setProducts] = useState([]);
   const [broadcastFlyer, setBroadcastFlyer] = useState(null);
+  const [categories, setCategories] = useState([
+    { name: 'Birthday Cakes', emoji: '🎂' },
+    { name: 'Wedding Cakes', emoji: '💍' },
+    { name: 'Cupcakes', emoji: '🧁' },
+    { name: 'Pastries', emoji: '🥐' },
+    { name: 'Baking Tools', emoji: '🍰' },
+    { name: 'Ingredients', emoji: '🌾' }
+  ]);
   const { quickAddToCart } = useContext(CartContext);
   const navigate = useNavigate();
 
@@ -22,6 +30,11 @@ const Home = ({ onCategorySelect }) => {
       const flyerRes = await axios.get('http://localhost:5000/api/flyers');
       const broadcast = flyerRes.data.find(f => f.isBroadcast);
       setBroadcastFlyer(broadcast);
+
+      const catRes = await axios.get('http://localhost:5000/api/categories');
+      if (catRes.data && Array.isArray(catRes.data)) {
+        setCategories(catRes.data);
+      }
     } catch (err) {
       console.error('Error fetching home details', err);
     }
@@ -70,12 +83,25 @@ const Home = ({ onCategorySelect }) => {
           <a onClick={() => navigate('/products')}>View All →</a>
         </div>
         <div className="cat-grid">
-          <div className="cat-card" onClick={() => handleCategoryClick('Birthday Cakes')}><div className="cat-icon">🎂</div><p>Birthday Cakes</p></div>
-          <div className="cat-card" onClick={() => handleCategoryClick('Wedding Cakes')}><div className="cat-icon">💍</div><p>Wedding Cakes</p></div>
-          <div className="cat-card" onClick={() => handleCategoryClick('Cupcakes')}><div className="cat-icon">🧁</div><p>Cupcakes</p></div>
-          <div className="cat-card" onClick={() => handleCategoryClick('Pastries')}><div className="cat-icon">🥐</div><p>Pastries</p></div>
-          <div className="cat-card" onClick={() => handleCategoryClick('Baking Tools')}><div className="cat-icon">🍰</div><p>Baking Tools</p></div>
-          <div className="cat-card" onClick={() => handleCategoryClick('Ingredients')}><div className="cat-icon">🌾</div><p>Ingredients</p></div>
+          {categories.map(cat => (
+            <div 
+              key={cat._id || cat.name} 
+              className="cat-card" 
+              onClick={() => handleCategoryClick(cat.name)}
+            >
+              <div className="cat-icon">
+                {cat.image ? (
+                  <img 
+                    src={cat.image.startsWith('/uploads') ? `http://localhost:5000${cat.image}` : cat.image} 
+                    alt={cat.name} 
+                  />
+                ) : (
+                  '🍰'
+                )}
+              </div>
+              <p>{cat.name === 'Ingredients' ? 'Ingredients' : cat.name}</p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -89,7 +115,11 @@ const Home = ({ onCategorySelect }) => {
           {products.map(p => (
             <div key={p._id} className="prod-card" onClick={() => navigate(`/product/${p._id}`)}>
               <div className="prod-img">
-                {p.emoji}
+                {p.image ? (
+                  <img src={p.image.startsWith('/uploads') ? `http://localhost:5000${p.image}` : p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ fontSize: '48px' }}>🍰</span>
+                )}
                 <div className="prod-badge">{p.stock === 'Made to Order' ? 'FRESH' : 'BESTSELLER'}</div>
               </div>
               <div className="prod-body">

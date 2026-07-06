@@ -21,11 +21,11 @@ router.get('/', async (req, res) => {
 // @access  Private/Admin
 router.post('/', auth, admin, async (req, res) => {
   try {
-    const { name, emoji, price, description, category, stock, status } = req.body;
+    const { name, image, price, description, category, stock, status } = req.body;
 
     const newProduct = new Product({
       name,
-      emoji,
+      image,
       price,
       description,
       category,
@@ -46,7 +46,7 @@ router.post('/', auth, admin, async (req, res) => {
 // @access  Private/Admin
 router.put('/:id', auth, admin, async (req, res) => {
   try {
-    const { name, emoji, price, description, category, stock, status } = req.body;
+    const { name, image, price, description, category, stock, status } = req.body;
 
     let product = await Product.findById(req.params.id);
     if (!product) {
@@ -54,7 +54,7 @@ router.put('/:id', auth, admin, async (req, res) => {
     }
 
     product.name = name || product.name;
-    product.emoji = emoji || product.emoji;
+    product.image = image || product.image;
     product.price = price !== undefined ? price : product.price;
     product.description = description || product.description;
     product.category = category || product.category;
@@ -88,3 +88,4 @@ router.delete('/:id', auth, admin, async (req, res) => {
 });
 
 module.exports = router;
+
