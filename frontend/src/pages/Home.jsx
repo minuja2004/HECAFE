@@ -77,7 +77,6 @@ const Home = ({ onCategorySelect }) => {
           <div className="hero-tag">FRESHLY BAKED • SAME DAY DELIVERY</div>
           <h1>Custom Cakes &<br />Bakery Favourites,<br /><span>Made With Love</span></h1>
           <p>Order birthday cakes, cupcakes, pastries, and all your baking essentials from HE Cafe — Sri Lanka's home of handcrafted sweetness.</p>
-          <img src={heroImg} alt="HE Cafe Cakes & Bakery" style={{ width: '100%', maxWidth: '380px', borderRadius: '12px', marginTop: '16px', marginBottom: '24px', display: 'block', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
           <div className="hero-btns">
             <button className="btn-primary" onClick={() => navigate('/products')}>Shop Cakes</button>
             <button className="btn-outline" onClick={() => navigate('/custom-order')}>Custom Order</button>

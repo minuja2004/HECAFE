@@ -160,7 +160,8 @@ body {
 
 /* ===== HERO ===== */
 .hero {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d1010 100%);
+  background: linear-gradient(135deg, rgba(26, 26, 26, 0.88) 0%, rgba(45, 16, 16, 0.88) 100%), url('./assets/hero.png') no-repeat center center;
+  background-size: cover;
   padding: 36px 64px;
   display: flex;
   align-items: center;
