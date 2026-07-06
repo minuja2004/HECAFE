@@ -103,7 +103,7 @@ const Navbar = ({ onOpenTracking, onSearch, onOpenCart, searchQuery }) => {
           )}
 
           <button className="cart-btn" onClick={onOpenCart}>
-            🛒 Cart ({getCartCount()})
+            🛒 ({getCartCount()})
           </button>
         </div>
       </nav>
@@ -142,7 +142,7 @@ const Navbar = ({ onOpenTracking, onSearch, onOpenCart, searchQuery }) => {
 
         <div className="mobile-menu-footer">
           <button className="cart-btn" style={{ width: '100%', justifyContent: 'center', padding: '14px' }} onClick={() => { onOpenCart(); closeMenu(); }}>
-            🛒 Cart ({getCartCount()})
+            🛒 ({getCartCount()})
           </button>
           {user ? (
             <div className="mobile-user-info">
