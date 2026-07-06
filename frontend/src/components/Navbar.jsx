@@ -102,8 +102,15 @@ const Navbar = ({ onOpenTracking, onSearch, onOpenCart, searchQuery }) => {
             <Link to="/admin" className="admin-btn">🛡️ Admin Panel</Link>
           )}
 
-          <button className="cart-btn" onClick={onOpenCart}>
-            🛒 ({getCartCount()})
+          <button className="cart-btn" onClick={onOpenCart} aria-label="Shopping Cart">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="9" cy="21" r="1" fill="currentColor"></circle>
+              <circle cx="20" cy="21" r="1" fill="currentColor"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            {getCartCount() > 0 && (
+              <span className="cart-badge">{getCartCount()}</span>
+            )}
           </button>
         </div>
       </nav>
@@ -140,9 +147,16 @@ const Navbar = ({ onOpenTracking, onSearch, onOpenCart, searchQuery }) => {
           )}
         </nav>
 
-        <div className="mobile-menu-footer">
-          <button className="cart-btn" style={{ width: '100%', justifyContent: 'center', padding: '14px' }} onClick={() => { onOpenCart(); closeMenu(); }}>
-            🛒 ({getCartCount()})
+        <div className="mobile-menu-footer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+          <button className="cart-btn" onClick={() => { onOpenCart(); closeMenu(); }} aria-label="Shopping Cart">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="9" cy="21" r="1" fill="currentColor"></circle>
+              <circle cx="20" cy="21" r="1" fill="currentColor"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            {getCartCount() > 0 && (
+              <span className="cart-badge">{getCartCount()}</span>
+            )}
           </button>
           {user ? (
             <div className="mobile-user-info">

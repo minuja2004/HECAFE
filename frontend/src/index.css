@@ -95,15 +95,40 @@ body {
 .cart-btn {
   background: var(--red);
   color: #fff;
-  padding: 8px 18px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   cursor: pointer;
   border: none;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  position: relative;
+  transition: all 0.2s ease;
+  padding: 0;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+.cart-btn:hover {
+  background: #c92c2c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+}
+.cart-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #111;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 .admin-btn {
   background: var(--black);
