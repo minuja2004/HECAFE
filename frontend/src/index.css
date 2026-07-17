@@ -1701,10 +1701,19 @@ footer {
     padding: 28px 16px;
   }
   .cat-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 12px;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 8px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cat-grid::-webkit-scrollbar {
+    display: none;
   }
   .cat-card {
+    flex: 0 0 200px;
     border-radius: 16px;
   }
   .cat-card-content {
