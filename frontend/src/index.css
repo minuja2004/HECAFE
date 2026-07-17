@@ -1788,6 +1788,9 @@ footer {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
+  #page-home .prod-section .prod-grid .prod-card:nth-child(n+3) {
+    display: none;
+  }
   .prod-img {
     height: 150px;
   }
