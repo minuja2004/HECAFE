@@ -54,7 +54,7 @@ body {
   cursor: pointer;
 }
 .logo-img {
-  height: 48px;
+  height: 64px;
   max-width: 100%;
   object-fit: contain;
   display: block;

@@ -124,7 +124,7 @@ const Navbar = ({ onOpenTracking, onSearch, onOpenCart, searchQuery }) => {
       {/* Mobile Menu Drawer */}
       <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
         <div className="mobile-menu-header">
-          <img src={logoImg} alt="HE Cafe Logo" className="logo-img" style={{ height: '36px' }} />
+          <img src={logoImg} alt="HE Cafe Logo" className="logo-img" style={{ height: '50px' }} />
           <button className="mobile-menu-close" onClick={closeMenu}>✕</button>
         </div>
 
