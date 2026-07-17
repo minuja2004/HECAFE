@@ -287,7 +287,7 @@ const Home = ({ onCategorySelect }) => {
         const catProducts = products.filter(p => p.category && p.category.toLowerCase() === cat.name.toLowerCase()).slice(0, 4);
         if (catProducts.length === 0) return null;
         return (
-          <div key={cat._id || cat.name} className="prod-section" style={{ marginBottom: '48px' }}>
+          <div key={cat._id || cat.name} className="prod-section">
             <div className="section-header">
               <h2>{cat.name}</h2>
               <a onClick={() => handleCategoryClick(cat.name)}>View All →</a>
