@@ -27,7 +27,7 @@ const categoryCardMeta = {
     badge: "BOX OF 6 / 12",
     title: "Cupcakes",
     desc: "Little bites of joy",
-    arrowType: "right"
+    arrowType: "diagonal"
   },
   "pastries": {
     badge: "BAKED DAILY",
