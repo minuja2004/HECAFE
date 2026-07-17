@@ -4,6 +4,57 @@ import axios from 'axios';
 import { CartContext } from '../context/CartContext';
 import heroImg from '../assets/hero.png';
 
+const categoryCardMeta = {
+  "wedding cakes": {
+    badge: "MADE TO ORDER",
+    title: "Wedding Cakes",
+    desc: "Elegant, bespoke tiers",
+    arrowType: "diagonal"
+  },
+  "birthday cakes": {
+    badge: "MADE TO ORDER",
+    title: "Birthday Cakes",
+    desc: "Celebrate with sweetness",
+    arrowType: "diagonal"
+  },
+  "custom cakes": {
+    badge: "MADE TO ORDER",
+    title: "Custom Cakes",
+    desc: "Designed for your day",
+    arrowType: "diagonal"
+  },
+  "cupcakes": {
+    badge: "BOX OF 6 / 12",
+    title: "Cupcakes",
+    desc: "Little bites of joy",
+    arrowType: "right"
+  },
+  "pastries": {
+    badge: "BAKED DAILY",
+    title: "Pastries",
+    desc: "Fresh from the oven",
+    arrowType: "diagonal"
+  },
+  "breads": {
+    badge: "NEW BATCH 7AM",
+    title: "Breads",
+    desc: "Warm, crusty, homemade",
+    arrowType: "diagonal"
+  },
+  "ingredients": {
+    badge: "PREMIUM QUALITY",
+    title: "Ingredients",
+    desc: "Organic baking supplies",
+    arrowType: "diagonal"
+  },
+  "baking tools": {
+    badge: "PRO EQUIPMENT",
+    title: "Baking Tools",
+    desc: "Elevate your baking craft",
+    arrowType: "diagonal"
+  }
+};
+
 const Home = ({ onCategorySelect }) => {
   const [products, setProducts] = useState([]);
   const [flyers, setFlyers] = useState([]);
@@ -159,25 +210,38 @@ const Home = ({ onCategorySelect }) => {
           <a onClick={() => navigate('/products')}>View All →</a>
         </div>
         <div className="cat-grid">
-          {categories.map(cat => (
-            <div
-              key={cat._id || cat.name}
-              className="cat-card"
-              onClick={() => handleCategoryClick(cat.name)}
-            >
-              <div className="cat-icon">
-                {cat.image ? (
-                  <img
-                    src={cat.image.startsWith('/uploads') ? `http://localhost:5000${cat.image}` : cat.image}
-                    alt={cat.name}
-                  />
-                ) : (
-                  '🍰'
-                )}
+          {categories.map(cat => {
+            const meta = categoryCardMeta[cat.name.toLowerCase()] || {
+              badge: "FRESH SELECTION",
+              title: cat.name,
+              desc: "Handcrafted with love",
+              arrowType: "diagonal"
+            };
+            const catImgUrl = cat.image 
+              ? (cat.image.startsWith('/uploads') ? `http://localhost:5000${cat.image}` : cat.image)
+              : 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=60';
+            return (
+              <div
+                key={cat._id || cat.name}
+                className="cat-card"
+                onClick={() => handleCategoryClick(cat.name)}
+              >
+                <div 
+                  className="cat-card-bg"
+                  style={{ backgroundImage: `url(${catImgUrl})` }}
+                />
+                <div className="cat-card-overlay" />
+                <div className="cat-card-content">
+                  <span className="cat-card-badge">{meta.badge}</span>
+                  <h3 className="cat-card-title">{meta.title}</h3>
+                  <p className="cat-card-desc">{meta.desc}</p>
+                </div>
+                <button className="cat-card-btn" aria-label={`View ${cat.name}`}>
+                  {meta.arrowType === 'right' ? '→' : '↗'}
+                </button>
               </div>
-              <p>{cat.name === 'Ingredients' ? 'Ingredients' : cat.name}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
