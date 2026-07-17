@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
+import logoImg from '../assets/logo.png';
 
 const Navbar = ({ onOpenTracking, onSearch, onOpenCart, searchQuery }) => {
   const { user, logout } = useContext(AuthContext);
@@ -67,7 +68,7 @@ const Navbar = ({ onOpenTracking, onSearch, onOpenCart, searchQuery }) => {
       {/* MAIN NAVBAR */}
       <nav className="navbar">
         <Link to="/" className="logo" onClick={handleHomeClick}>
-          <div className="logo-text">HE <span>Cafe</span></div>
+          <img src={logoImg} alt="HE Cafe Logo" className="logo-img" />
         </Link>
 
         <form onSubmit={handleSearchSubmit} className="search-bar">
@@ -123,7 +124,7 @@ const Navbar = ({ onOpenTracking, onSearch, onOpenCart, searchQuery }) => {
       {/* Mobile Menu Drawer */}
       <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
         <div className="mobile-menu-header">
-          <div className="logo-text">HE <span style={{ color: 'var(--red)' }}>Cafe</span></div>
+          <img src={logoImg} alt="HE Cafe Logo" className="logo-img" style={{ height: '36px' }} />
           <button className="mobile-menu-close" onClick={closeMenu}>✕</button>
         </div>
 
