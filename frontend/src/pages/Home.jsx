@@ -209,39 +209,76 @@ const Home = ({ onCategorySelect }) => {
           <h2>Shop by Category</h2>
           <a onClick={() => navigate('/products')}>View All →</a>
         </div>
-        <div className="cat-grid">
-          {categories.map(cat => {
-            const meta = categoryCardMeta[cat.name.toLowerCase()] || {
-              badge: "FRESH SELECTION",
-              title: cat.name,
-              desc: "Handcrafted with love",
-              arrowType: "diagonal"
-            };
-            const catImgUrl = cat.image 
-              ? (cat.image.startsWith('/uploads') ? `http://localhost:5000${cat.image}` : cat.image)
-              : 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=60';
-            return (
-              <div
-                key={cat._id || cat.name}
-                className="cat-card"
-                onClick={() => handleCategoryClick(cat.name)}
-              >
-                <div 
-                  className="cat-card-bg"
-                  style={{ backgroundImage: `url(${catImgUrl})` }}
-                />
-                <div className="cat-card-overlay" />
-                <div className="cat-card-content">
-                  <span className="cat-card-badge">{meta.badge}</span>
-                  <h3 className="cat-card-title">{meta.title}</h3>
-                  <p className="cat-card-desc">{meta.desc}</p>
+        <div className="cat-carousel-container">
+          <div className="cat-grid">
+            {/* Set 1 */}
+            {categories.map(cat => {
+              const meta = categoryCardMeta[cat.name.toLowerCase()] || {
+                badge: "FRESH SELECTION",
+                title: cat.name,
+                desc: "Handcrafted with love",
+                arrowType: "diagonal"
+              };
+              const catImgUrl = cat.image 
+                ? (cat.image.startsWith('/uploads') ? `http://localhost:5000${cat.image}` : cat.image)
+                : 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=60';
+              return (
+                <div
+                  key={`${cat._id || cat.name}-1`}
+                  className="cat-card"
+                  onClick={() => handleCategoryClick(cat.name)}
+                >
+                  <div 
+                    className="cat-card-bg"
+                    style={{ backgroundImage: `url(${catImgUrl})` }}
+                  />
+                  <div className="cat-card-overlay" />
+                  <div className="cat-card-content">
+                    <span className="cat-card-badge">{meta.badge}</span>
+                    <h3 className="cat-card-title">{meta.title}</h3>
+                    <p className="cat-card-desc">{meta.desc}</p>
+                  </div>
+                  <button className="cat-card-btn" aria-label={`View ${cat.name}`}>
+                    {meta.arrowType === 'right' ? '→' : '↗'}
+                  </button>
                 </div>
-                <button className="cat-card-btn" aria-label={`View ${cat.name}`}>
-                  {meta.arrowType === 'right' ? '→' : '↗'}
-                </button>
-              </div>
-            );
-          })}
+              );
+            })}
+            
+            {/* Set 2 for seamless scrolling loop on mobile */}
+            {categories.map(cat => {
+              const meta = categoryCardMeta[cat.name.toLowerCase()] || {
+                badge: "FRESH SELECTION",
+                title: cat.name,
+                desc: "Handcrafted with love",
+                arrowType: "diagonal"
+              };
+              const catImgUrl = cat.image 
+                ? (cat.image.startsWith('/uploads') ? `http://localhost:5000${cat.image}` : cat.image)
+                : 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=60';
+              return (
+                <div
+                  key={`${cat._id || cat.name}-2`}
+                  className="cat-card loop-duplicate"
+                  onClick={() => handleCategoryClick(cat.name)}
+                >
+                  <div 
+                    className="cat-card-bg"
+                    style={{ backgroundImage: `url(${catImgUrl})` }}
+                  />
+                  <div className="cat-card-overlay" />
+                  <div className="cat-card-content">
+                    <span className="cat-card-badge">{meta.badge}</span>
+                    <h3 className="cat-card-title">{meta.title}</h3>
+                    <p className="cat-card-desc">{meta.desc}</p>
+                  </div>
+                  <button className="cat-card-btn" aria-label={`View ${cat.name}`}>
+                    {meta.arrowType === 'right' ? '→' : '↗'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
